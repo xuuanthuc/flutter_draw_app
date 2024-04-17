@@ -34,12 +34,6 @@ class _FooterToolState extends State<FooterTool> {
           _selectSize(context),
           _selectColor(context),
           _selectClearAll(context),
-          // InkWell(
-          //   onTap: () {},
-          //   child: Container(
-          //     child: Icon(CupertinoIcons.earse),
-          //   ),
-          // )
         ],
       ),
     );
@@ -49,17 +43,23 @@ class _FooterToolState extends State<FooterTool> {
     return InkWell(
       borderRadius: BorderRadius.circular(50),
       onTap: () {
-        context.read<PaintBloc>().add(
-            OnPaintingEvent([DrawLine(point: Offset.zero, paint: Paint())]));
+        context.read<PaintBloc>().onErase();
       },
-      child: Container(
-        color: Colors.transparent,
-        height: 40,
-        width: 40,
-        child: Icon(
-          CupertinoIcons.delete_solid,
-          color: Colors.grey,
-        ),
+      child: BlocBuilder<PaintBloc, PaintState>(
+        buildWhen: (prev, curr) => prev.action != curr.action,
+        builder: (context, state) {
+          return Container(
+            color: Colors.transparent,
+            height: 40,
+            width: 40,
+            child: Icon(
+              CupertinoIcons.delete_solid,
+              color: state.action == PaintAction.erase
+                  ? Colors.black
+                  : Colors.grey,
+            ),
+          );
+        },
       ),
     );
   }
@@ -83,33 +83,12 @@ class _FooterToolState extends State<FooterTool> {
                 pickerColor: pickerColor,
                 onColorChanged: changeColor,
               ),
-              // Use Material color picker:
-              //
-              // child: MaterialPicker(
-              //   pickerColor: pickerColor,
-              //   onColorChanged: changeColor,
-              //   // showLabel: true, // only on portrait mode
-              // ),
-              //
-              // Use Block color picker:
-              //
-              // child: BlockPicker(
-              //   pickerColor: currentColor,
-              //   onColorChanged: changeColor,
-              // ),
-              //
-              // child: MultipleChoiceBlockPicker(
-              //   pickerColors: currentColors,
-              //   onColorsChanged: changeColors,
-              // ),
             ),
             actions: <Widget>[
               TextButton(
                 child: const Text('Select'),
                 onPressed: () {
-                  context
-                      .read<PaintBloc>()
-                      .add(OnSelectPaintColorEvent(pickerColor));
+                  context.read<PaintBloc>().onSelectColor(pickerColor);
                   Navigator.of(context).pop();
                 },
               ),
@@ -166,7 +145,7 @@ class _FooterToolState extends State<FooterTool> {
         height: 40,
         width: 40,
         color: Colors.transparent,
-        child: Icon(
+        child: const Icon(
           Icons.edit,
           color: Colors.grey,
         ),
@@ -179,7 +158,7 @@ class _FooterToolState extends State<FooterTool> {
       borderRadius: BorderRadius.circular(50),
       onTap: () {
         size = currenSize;
-        context.read<PaintBloc>().add(OnSelectStokeSizeEvent(size));
+        context.read<PaintBloc>().onSelectStoke(size);
         Navigator.of(context).pop();
       },
       child: Padding(

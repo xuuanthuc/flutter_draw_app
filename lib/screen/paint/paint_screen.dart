@@ -15,24 +15,10 @@ class PaintScreen extends StatefulWidget {
 }
 
 class _PaintScreenState extends State<PaintScreen> {
-  List<DrawLine> _listOffset = [];
-  double _paintSize = 2.0;
-  Color _paintColor = Colors.black;
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<PaintBloc, PaintState>(
-      listener: (context, state) {
-        if (state is OnPaintedState) {
-          _listOffset = state.listOffset;
-        }
-        if (state is OnSelectedStokeSizeState) {
-          _paintSize = state.size;
-        }
-        if (state is OnSelectedPaintColorState) {
-          _paintColor = state.color;
-        }
-      },
+      listener: (context, state) {},
       child: BlocBuilder<PaintBloc, PaintState>(
         builder: (context, state) {
           return Scaffold(
@@ -42,48 +28,78 @@ class _PaintScreenState extends State<PaintScreen> {
                 Expanded(
                   child: GestureDetector(
                     onPanDown: (point) {
-                      _listOffset.add(DrawLine(
-                          point: point.globalPosition,
-                          paint: Paint()
-                            ..color = _paintColor
-                            ..strokeWidth = _paintSize
-                            ..strokeCap = StrokeCap.round
-                            ..style = PaintingStyle.stroke));
-                      context
-                          .read<PaintBloc>()
-                          .add(OnPaintingEvent(_listOffset));
+                      var paint = Paint();
+                      if (state.action == PaintAction.erase) {
+                        paint = Paint()
+                          ..color = Colors.red.withOpacity(0.1)
+                          ..strokeWidth = 50
+                          ..strokeCap = StrokeCap.round
+                          ..style = PaintingStyle.stroke;
+                      } else {
+                        paint
+                          ..color = state.color ?? Colors.black
+                          ..strokeWidth = state.size ?? 2
+                          ..strokeCap = StrokeCap.round
+                          ..style = PaintingStyle.stroke;
+                      }
+                      context.read<PaintBloc>().onPaint(DrawLine(
+                            point: point.globalPosition,
+                            paint: paint,
+                            action: state.action ?? PaintAction.draw,
+                          ));
                     },
                     onPanUpdate: (point) {
-                      _listOffset.add(DrawLine(
-                          point: point.globalPosition,
-                          paint: Paint()
-                            ..color = _paintColor
-                            ..strokeWidth = _paintSize
-                            ..strokeCap = StrokeCap.round
-                            ..style = PaintingStyle.stroke));
-                      context
-                          .read<PaintBloc>()
-                          .add(OnPaintingEvent(_listOffset));
+                      var paint = Paint();
+                      if (state.action == PaintAction.erase) {
+                        paint = Paint()
+                          ..color = Colors.red.withOpacity(0.1)
+                          ..strokeWidth = 50
+                          ..strokeCap = StrokeCap.round
+                          ..style = PaintingStyle.stroke;
+                      } else {
+                        paint
+                          ..color = state.color ?? Colors.black
+                          ..strokeWidth = state.size ?? 2
+                          ..strokeCap = StrokeCap.round
+                          ..style = PaintingStyle.stroke;
+                      }
+
+                      context.read<PaintBloc>().onPaint(DrawLine(
+                            point: point.globalPosition,
+                            paint: paint,
+                            action: state.action ?? PaintAction.draw,
+                          ));
                     },
                     onPanEnd: (point) {
-                      _listOffset.add(DrawLine(
-                          point: Offset.zero,
-                          paint: Paint()
-                            ..color = _paintColor
-                            ..strokeWidth = _paintSize
-                            ..strokeCap = StrokeCap.round
-                            ..style = PaintingStyle.stroke));
-                      context
-                          .read<PaintBloc>()
-                          .add(OnPaintingEvent(_listOffset));
+                      var paint = Paint();
+                      if (state.action == PaintAction.erase) {
+                        paint = Paint()
+                          ..color = Colors.red.withOpacity(0.1)
+                          ..strokeWidth = 50
+                          ..strokeCap = StrokeCap.round
+                          ..style = PaintingStyle.stroke;
+                        context.read<PaintBloc>().clearErasePaint();
+                      } else {
+                        paint
+                          ..color = state.color ?? Colors.black
+                          ..strokeWidth = state.size ?? 2
+                          ..strokeCap = StrokeCap.round
+                          ..style = PaintingStyle.stroke;
+                        context.read<PaintBloc>().onPaint(
+                          DrawLine(
+                              point: Offset.zero,
+                              paint: paint,
+                              action: state.action ?? PaintAction.draw),
+                        );
+                      }
                     },
                     child: CustomPaint(
-                      painter: CardPaint(_listOffset),
+                      painter: CardPaint(state.listOffset ?? []),
                       child: Container(),
                     ),
                   ),
                 ),
-                FooterTool(listLine: _listOffset)
+                FooterTool(listLine: state.listOffset ?? [])
               ],
             ),
           );
@@ -100,6 +116,7 @@ class CardPaint extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Rect.largest, Paint());
     for (var i = 0; i < listOffset.length - 1; i++) {
       if (listOffset[i].point != Offset.zero &&
           listOffset[i + 1].point != Offset.zero) {
@@ -110,6 +127,7 @@ class CardPaint extends CustomPainter {
         canvas.drawPoints(PointMode.points, [listOffset[i].point], paint);
       }
     }
+    canvas.restore();
   }
 
   @override
