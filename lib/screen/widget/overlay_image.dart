@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:paint_app/bloc/paint_bloc.dart';
 import 'package:paint_app/public/gesture.dart';
 
 class OverlayImage extends StatelessWidget {
   final Widget child;
+  final Function(Offset) onScaleStart;
+  final Function(Key?) onScaleEnd;
 
   const OverlayImage({
     Key? key,
     required this.child,
+    required this.onScaleEnd,
+    required this.onScaleStart,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final ValueNotifier<Matrix4> notifier = ValueNotifier(Matrix4.identity());
     return MatrixGestureDetector(
+      key: key,
       onMatrixUpdate: (matrix, translationDeltaMatrix, scaleDeltaMatrix,
           rotationDeltaMatrix) {
         notifier.value = matrix;
       },
-      onScaleStart: () {
-        context.read<PaintBloc>().onUpdateDrag();
-      },
-      onScaleEnd: () {
-        context.read<PaintBloc>().onUpdateDraw();
-      },
+      onScaleStart: onScaleStart,
+      onScaleEnd: onScaleEnd,
       child: AnimatedBuilder(
         animation: notifier,
         builder: (context, childAni) {

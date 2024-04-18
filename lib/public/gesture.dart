@@ -17,8 +17,8 @@ class MatrixGestureDetector extends StatefulWidget {
   final bool clipChild;
   final HitTestBehavior behavior;
   final Alignment? focalPointAlignment;
-  final VoidCallback onScaleStart;
-  final VoidCallback onScaleEnd;
+  final Function(Offset) onScaleStart;
+  final Function(Key?) onScaleEnd;
 
   const MatrixGestureDetector({
     Key? key,
@@ -89,7 +89,7 @@ class _MatrixGestureDetectorState extends State<MatrixGestureDetector> {
   );
 
   void onScaleStart(ScaleStartDetails details) {
-    widget.onScaleStart();
+    widget.onScaleStart(details.focalPoint);
 
     translationUpdater.value = details.focalPoint;
     scaleUpdater.value = 1.0;
@@ -97,11 +97,11 @@ class _MatrixGestureDetectorState extends State<MatrixGestureDetector> {
   }
 
   void onScaleEnd(ScaleEndDetails details) {
-    widget.onScaleEnd();
+    widget.onScaleEnd(widget.key);
   }
 
   void onScaleUpdate(ScaleUpdateDetails details) {
-    widget.onScaleStart();
+    widget.onScaleStart(details.focalPoint);
     translationDeltaMatrix = Matrix4.identity();
     scaleDeltaMatrix = Matrix4.identity();
     rotationDeltaMatrix = Matrix4.identity();

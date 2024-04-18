@@ -7,10 +7,12 @@ class PaintState extends Equatable {
   final List<DrawLine>? listOffset;
   final List<Widget>? images;
   final Widget? newSticker;
+  final Key? stickerDeleted;
   final PaintAction? action;
   final double? size;
   final Color? color;
   final DrawLine? line;
+  final bool? canDelete;
 
   const PaintState({
     this.listOffset,
@@ -20,6 +22,8 @@ class PaintState extends Equatable {
     this.line,
     this.action,
     this.newSticker,
+    this.stickerDeleted,
+    this.canDelete,
   });
 
   PaintState copyWith({
@@ -30,6 +34,8 @@ class PaintState extends Equatable {
     PaintAction? action,
     List<Widget>? images,
     Widget? newSticker,
+    Key? stickerDeleted,
+    bool? canDelete,
   }) {
     return PaintState(
       listOffset: listOffset ?? this.listOffset,
@@ -39,6 +45,8 @@ class PaintState extends Equatable {
       action: action ?? this.action,
       images: images ?? this.images,
       newSticker: newSticker,
+      stickerDeleted: stickerDeleted,
+      canDelete: canDelete ?? this.canDelete,
     );
   }
 
@@ -51,5 +59,7 @@ class PaintState extends Equatable {
         action,
         images,
         newSticker,
+        canDelete,
+        stickerDeleted,
       ];
 }

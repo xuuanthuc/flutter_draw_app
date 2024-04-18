@@ -31,8 +31,11 @@ class PaintBloc extends Cubit<PaintState> {
     emit(state.copyWith(action: PaintAction.draw));
   }
 
-  void onUpdateDrag() {
-    emit(state.copyWith(action: PaintAction.none));
+  void onUpdateDrag(bool canDelete) {
+    emit(state.copyWith(
+      action: PaintAction.none,
+      canDelete: canDelete,
+    ));
   }
 
   void onSelectStoke(double size) {
@@ -50,10 +53,17 @@ class PaintBloc extends Cubit<PaintState> {
         action: PaintAction.newSticker,
       ),
     );
-    emit(
-      state.copyWith(
-        action: PaintAction.draw,
-      ),
-    );
+    emit(state.copyWith(action: PaintAction.draw));
+  }
+
+  void deleteSticker(Key key) {
+    emit(state.copyWith(
+      stickerDeleted: key,
+      action: PaintAction.newSticker,
+    ));
+    emit(state.copyWith(
+      action: PaintAction.draw,
+      canDelete: false,
+    ));
   }
 }
