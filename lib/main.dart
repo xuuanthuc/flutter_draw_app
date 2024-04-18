@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:paint_app/bloc/paint_bloc.dart';
-import 'package:paint_app/screen/paint/paint_screen.dart';
+import 'package:paint_app/screen/paint_screen.dart';
 
 void main() {
   runApp(const MyApp());
