@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:paint_app/model/draw_model.dart';
 
-part 'paint_event.dart';
-
 part 'paint_state.dart';
 
 @injectable
@@ -33,7 +31,7 @@ class PaintBloc extends Cubit<PaintState> {
 
   void onUpdateDrag(bool canDelete) {
     emit(state.copyWith(
-      action: PaintAction.none,
+      action: PaintAction.drag,
       canDelete: canDelete,
     ));
   }
@@ -50,7 +48,7 @@ class PaintBloc extends Cubit<PaintState> {
     emit(
       state.copyWith(
         newSticker: image,
-        action: PaintAction.newSticker,
+        action: PaintAction.sticker,
       ),
     );
     emit(state.copyWith(action: PaintAction.draw));
@@ -59,7 +57,7 @@ class PaintBloc extends Cubit<PaintState> {
   void deleteSticker(Key key) {
     emit(state.copyWith(
       stickerDeleted: key,
-      action: PaintAction.newSticker,
+      action: PaintAction.sticker,
     ));
     emit(state.copyWith(
       action: PaintAction.draw,

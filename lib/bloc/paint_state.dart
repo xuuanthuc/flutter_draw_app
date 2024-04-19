@@ -1,6 +1,6 @@
 part of 'paint_bloc.dart';
 
-enum PaintAction { draw, erase, newSticker, none }
+enum PaintAction { draw, erase, sticker, drag }
 
 @immutable
 class PaintState extends Equatable {

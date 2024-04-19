@@ -5,7 +5,12 @@ import 'package:paint_app/bloc/paint_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ToolSelection extends StatefulWidget {
-  const ToolSelection({Key? key}) : super(key: key);
+  final Function onSave;
+
+  const ToolSelection({
+    Key? key,
+    required this.onSave,
+  }) : super(key: key);
 
   @override
   State<ToolSelection> createState() => _ToolSelectionState();
@@ -15,12 +20,12 @@ class _ToolSelectionState extends State<ToolSelection> {
   Color pickerColor = const Color(0xff443a49);
   double size = 2;
   List<Widget> images = [
-    Image.asset("assets/bone.png"),
-    Image.asset("assets/food.png"),
-    Image.asset("assets/foot.png"),
-    Image.asset("assets/home.png"),
-    Image.asset("assets/medic.png"),
-    Image.asset("assets/ring.png"),
+    Image.asset("assets/bear.png"),
+    Image.asset("assets/cat.png"),
+    Image.asset("assets/dog.png"),
+    Image.asset("assets/eagle.png"),
+    Image.asset("assets/turtle.png"),
+    Image.asset("assets/pinguin.png"),
   ];
 
   void changeColor(Color color) {
@@ -42,7 +47,28 @@ class _ToolSelectionState extends State<ToolSelection> {
         _selectColor(context),
         const SizedBox(height: 10),
         _selectClearAll(context),
+        const SizedBox(height: 10),
+        _selectSave(onSave: () => widget.onSave()),
       ],
+    );
+  }
+
+  InkWell _selectSave({required Function onSave}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(50),
+      onTap: () => onSave(),
+      child: Container(
+        height: 40,
+        width: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50),
+          color: Colors.grey.withOpacity(0.1),
+        ),
+        child: const Icon(
+          CupertinoIcons.square_arrow_down,
+          color: Colors.blue,
+        ),
+      ),
     );
   }
 
@@ -56,9 +82,12 @@ class _ToolSelectionState extends State<ToolSelection> {
         buildWhen: (prev, curr) => prev.action != curr.action,
         builder: (context, state) {
           return Container(
-            color: Colors.transparent,
             height: 40,
             width: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.grey.withOpacity(0.1),
+            ),
             child: Icon(
               CupertinoIcons.delete_solid,
               color: state.action == PaintAction.erase
@@ -114,12 +143,15 @@ class _ToolSelectionState extends State<ToolSelection> {
         buildWhen: (prev, curr) => prev.action != curr.action,
         builder: (context, state) {
           return Container(
-            color: Colors.transparent,
             height: 40,
             width: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.grey.withOpacity(0.1),
+            ),
             child: Icon(
               CupertinoIcons.wand_stars,
-              color: state.action == PaintAction.newSticker
+              color: state.action == PaintAction.sticker
                   ? Colors.black
                   : Colors.grey,
             ),
@@ -164,7 +196,10 @@ class _ToolSelectionState extends State<ToolSelection> {
       child: Container(
         height: 40,
         width: 40,
-        color: Colors.transparent,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50),
+          color: Colors.grey.withOpacity(0.1),
+        ),
         child: Icon(
           CupertinoIcons.paintbrush_fill,
           color: pickerColor,
@@ -210,9 +245,12 @@ class _ToolSelectionState extends State<ToolSelection> {
         buildWhen: (prev, curr) => prev.action != curr.action,
         builder: (context, state) {
           return Container(
-            color: Colors.transparent,
             height: 40,
             width: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: Colors.grey.withOpacity(0.1),
+            ),
             child: Icon(
               CupertinoIcons.pen,
               color:
