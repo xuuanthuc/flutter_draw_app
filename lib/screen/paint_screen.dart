@@ -7,6 +7,7 @@ import 'package:paint_app/screen/widget/overlay_image.dart';
 import 'package:paint_app/screen/widget/tools.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:uuid/uuid.dart';
 
 import '../bloc/paint_bloc.dart';
 
@@ -22,6 +23,16 @@ class _PaintScreenState extends State<PaintScreen> {
   bool _canDelete = false;
   final GlobalKey _deleteStickerIcon = GlobalKey();
   final ScreenshotController _screenshotController = ScreenshotController();
+  bool _isShowSticker = false;
+
+  List<Widget> images = [
+    Image.asset("assets/bear.png"),
+    Image.asset("assets/cat.png"),
+    Image.asset("assets/dog.png"),
+    Image.asset("assets/eagle.png"),
+    Image.asset("assets/turtle.png"),
+    Image.asset("assets/pinguin.png"),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -33,136 +44,155 @@ class _PaintScreenState extends State<PaintScreen> {
         children: [
           Screenshot(
             controller: _screenshotController,
-            child: Container(
-              width: MediaQuery.sizeOf(context).width,
-              height: MediaQuery.sizeOf(context).height,
-              color: Colors.white,
-              child: BlocBuilder<PaintBloc, PaintState>(
-                buildWhen: (_, cur) => cur.action == PaintAction.sticker,
-                builder: (context, state) {
-                  if (state.newSticker != null) {
-                    _images.add(
-                      OverlayImage(
-                        child: state.newSticker!,
-                        key: Key(
-                          _images.length.toString(),
-                        ),
-                        onScaleEnd: (key) {
-                          if (_canDelete) {
-                            context.read<PaintBloc>().deleteSticker(key!);
-                          }
-                          context.read<PaintBloc>().onUpdateDraw();
-                        },
-                        onScaleStart: (offset) {
-                          bool canDelete = false;
-                          if ((trashStickerIconPs - offset).distance.abs() <
-                              30) {
-                            canDelete = true;
-                          }
-                          context.read<PaintBloc>().onUpdateDrag(canDelete);
-                        },
-                      ),
-                    );
-                  }
-
-                  if (state.stickerDeleted != null) {
-                    _images.removeWhere(
-                        (element) => element.key == state.stickerDeleted);
-                  }
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      RepaintBoundary(
-                        child: BlocBuilder<PaintBloc, PaintState>(
-                          builder: (context, state) {
-                            var paint = Paint();
-                            if (state.action == PaintAction.erase) {
-                              paint = Paint()
-                                ..blendMode = BlendMode.clear
-                                ..strokeWidth = 30
-                                ..strokeCap = StrokeCap.round
-                                ..style = PaintingStyle.stroke;
-                            } else {
-                              paint
-                                ..color = state.color ?? Colors.black
-                                ..strokeWidth = state.size ?? 2
-                                ..strokeCap = StrokeCap.round
-                                ..style = PaintingStyle.stroke;
+            child: DragTarget(
+                onAcceptWithDetails: (DragTargetDetails<Widget> details) {
+              setState(() {
+                _isShowSticker = false;
+              });
+              context.read<PaintBloc>().addNewImage(details.data);
+            }, builder: (context, a, r) {
+              return Container(
+                width: MediaQuery.sizeOf(context).width,
+                height: MediaQuery.sizeOf(context).height,
+                color: Colors.white,
+                child: BlocBuilder<PaintBloc, PaintState>(
+                  buildWhen: (prev, cur) =>
+                      cur.newSticker != prev.newSticker ||
+                      cur.action == PaintAction.sticker,
+                  builder: (context, state) {
+                    if (state.newSticker != null) {
+                      context.read<PaintBloc>().onUpdateDraw();
+                      _images.add(
+                        OverlayImage(
+                          child: state.newSticker!,
+                          key: Key(const Uuid().v4()),
+                          onScaleEnd: (key) {
+                            if (_canDelete) {
+                              context.read<PaintBloc>().deleteSticker(key!);
                             }
-                            return GestureDetector(
-                              onPanDown: (point) {
-                                if (state.action == PaintAction.drag) return;
-                                context.read<PaintBloc>().onPaint(DrawLine(
-                                      point: point.globalPosition,
-                                      paint: paint,
-                                      action: state.action ?? PaintAction.draw,
-                                    ));
-                              },
-                              onPanUpdate: (point) {
-                                if (state.action == PaintAction.drag) return;
-                                context.read<PaintBloc>().onPaint(DrawLine(
-                                      point: point.globalPosition,
-                                      paint: paint,
-                                      action: state.action ?? PaintAction.draw,
-                                    ));
-                              },
-                              onPanEnd: (point) {
-                                if (state.action == PaintAction.drag) return;
-                                context.read<PaintBloc>().onPaint(DrawLine(
-                                      point: Offset.zero,
-                                      paint: paint,
-                                      action: state.action ?? PaintAction.draw,
-                                    ));
-                              },
-                              child: RepaintBoundary(
-                                child: CustomPaint(
-                                  isComplex: true,
-                                  willChange: false,
-                                  painter: CardPaint(state.listOffset ?? []),
-                                  child: Container(),
-                                ),
-                              ),
-                            );
+                            context.read<PaintBloc>().onUpdateDraw();
+                          },
+                          onScaleStart: (offset) {
+                            bool canDelete = false;
+                            if ((trashStickerIconPs - offset).distance.abs() <
+                                30) {
+                              canDelete = true;
+                            }
+                            context.read<PaintBloc>().onUpdateDrag(canDelete);
                           },
                         ),
-                      ),
-                      for (int i = 0; i < _images.length; i++) _images[i],
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: BlocBuilder<PaintBloc, PaintState>(
-                          key: _deleteStickerIcon,
-                          builder: (context, state) {
-                            _canDelete = state.canDelete ?? false;
-                            return Opacity(
-                              opacity: state.action == PaintAction.drag ? 1 : 0,
-                              child: IconButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                    Colors.grey.withOpacity(0.1),
+                      );
+                    }
+
+                    if (state.stickerDeleted != null) {
+                      _images.removeWhere(
+                          (element) => element.key == state.stickerDeleted);
+                    }
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        RepaintBoundary(
+                          child: BlocBuilder<PaintBloc, PaintState>(
+                            builder: (context, state) {
+                              var paint = Paint();
+                              if (state.action == PaintAction.erase) {
+                                paint = Paint()
+                                  ..blendMode = BlendMode.clear
+                                  ..strokeWidth = 30
+                                  ..strokeCap = StrokeCap.round
+                                  ..style = PaintingStyle.stroke;
+                              } else {
+                                paint
+                                  ..color = state.color ?? Colors.black
+                                  ..strokeWidth = state.size ?? 2
+                                  ..strokeCap = StrokeCap.round
+                                  ..style = PaintingStyle.stroke;
+                              }
+                              return GestureDetector(
+                                onPanDown: (point) {
+                                  if (state.action == PaintAction.drag) return;
+                                  context.read<PaintBloc>().onPaint(DrawLine(
+                                        point: point.globalPosition,
+                                        paint: paint,
+                                        action:
+                                            state.action ?? PaintAction.draw,
+                                      ));
+                                },
+                                onPanUpdate: (point) {
+                                  if (state.action == PaintAction.drag) return;
+                                  context.read<PaintBloc>().onPaint(DrawLine(
+                                        point: point.globalPosition,
+                                        paint: paint,
+                                        action:
+                                            state.action ?? PaintAction.draw,
+                                      ));
+                                },
+                                onPanEnd: (point) {
+                                  if (state.action == PaintAction.drag) return;
+                                  context.read<PaintBloc>().onPaint(DrawLine(
+                                        point: Offset.zero,
+                                        paint: paint,
+                                        action:
+                                            state.action ?? PaintAction.draw,
+                                      ));
+                                },
+                                child: RepaintBoundary(
+                                  child: CustomPaint(
+                                    isComplex: true,
+                                    willChange: false,
+                                    painter: CardPaint(state.listOffset ?? []),
+                                    child: Container(),
                                   ),
                                 ),
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: (state.canDelete ?? false)
-                                      ? Colors.red
-                                      : Colors.grey,
-                                ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                      )
-                    ],
-                  );
-                },
-              ),
-            ),
+                        for (int i = 0; i < _images.length; i++) _images[i],
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: BlocBuilder<PaintBloc, PaintState>(
+                            key: _deleteStickerIcon,
+                            builder: (context, state) {
+                              _canDelete = state.canDelete ?? false;
+                              return Opacity(
+                                opacity:
+                                    state.action == PaintAction.drag ? 1 : 0,
+                                child: IconButton(
+                                  onPressed: () {},
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(
+                                      Colors.grey.withOpacity(0.1),
+                                    ),
+                                  ),
+                                  icon: Icon(
+                                    Icons.delete,
+                                    color: (state.canDelete ?? false)
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                ),
+              );
+            }),
           ),
           Positioned(
             top: 80,
             right: 10,
             child: ToolSelection(
+              showSticker: () {
+                setState(() {
+                  _isShowSticker = !_isShowSticker;
+                });
+                context.read<PaintBloc>().onUpdateSticker();
+              },
               onSave: () {
                 _screenshotController.capture().then((image) async {
                   final dir = await getExternalStorageDirectory();
@@ -178,6 +208,48 @@ class _PaintScreenState extends State<PaintScreen> {
                   ));
                 });
               },
+            ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: Visibility(
+              visible: _isShowSticker,
+              child: Container(
+                margin: const EdgeInsets.only(top: 62, left: 10, right: 60),
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade300,
+                      offset: const Offset(2, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                width: MediaQuery.sizeOf(context).width,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: images.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      child: LongPressDraggable<Widget>(
+                        data: images[index],
+                        feedback: images[index],
+                        child: SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: images[index],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ],

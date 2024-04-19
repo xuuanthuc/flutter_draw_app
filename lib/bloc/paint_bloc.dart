@@ -29,6 +29,14 @@ class PaintBloc extends Cubit<PaintState> {
     emit(state.copyWith(action: PaintAction.draw));
   }
 
+  void onUpdateSticker() {
+    emit(state.copyWith(
+      action: state.action == PaintAction.sticker
+          ? PaintAction.draw
+          : PaintAction.sticker,
+    ));
+  }
+
   void onUpdateDrag(bool canDelete) {
     emit(state.copyWith(
       action: PaintAction.drag,
@@ -51,7 +59,6 @@ class PaintBloc extends Cubit<PaintState> {
         action: PaintAction.sticker,
       ),
     );
-    emit(state.copyWith(action: PaintAction.draw));
   }
 
   void deleteSticker(Key key) {

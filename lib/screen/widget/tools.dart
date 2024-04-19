@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:paint_app/bloc/paint_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:paint_app/screen/paint_screen.dart';
 
 class ToolSelection extends StatefulWidget {
   final Function onSave;
+  final Function showSticker;
 
   const ToolSelection({
     Key? key,
     required this.onSave,
+    required this.showSticker,
   }) : super(key: key);
 
   @override
@@ -33,6 +36,8 @@ class _ToolSelectionState extends State<ToolSelection> {
       pickerColor = color;
     });
   }
+
+  final GlobalKey _dialogKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -103,42 +108,69 @@ class _ToolSelectionState extends State<ToolSelection> {
   InkWell _selectSticker(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(50),
-      onTap: () async {
-        await showDialog<Widget?>(
-          barrierColor: Colors.grey.withOpacity(0.1),
-          context: context,
-          builder: (context) => Dialog(
-            elevation: 0,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(20),
-              ),
-            ),
-            child: Container(
-              height: 200,
-              padding: const EdgeInsets.all(20),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                ),
-                itemCount: images.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop(images[index]);
-                        },
-                        child: images[index]),
-                  );
-                },
-              ),
-            ),
-          ),
-        ).then((value) {
-          if (value != null) context.read<PaintBloc>().addNewImage(value);
-        });
-      },
+      onTap: () => widget.showSticker(),
+      // onTap: () async {
+      //   await showDialog<Widget?>(
+      //     barrierColor: Colors.grey.withOpacity(0.1),
+      //     context: context,
+      //     builder: (context) => Dialog(
+      //       elevation: 0,
+      //       shape: const RoundedRectangleBorder(
+      //         borderRadius: BorderRadius.all(
+      //           Radius.circular(20),
+      //         ),
+      //       ),
+      //       child: Container(
+      //         height: 200,
+      //         alignment: FractionalOffset.center,
+      //         key: _dialogKey,
+      //         padding: const EdgeInsets.all(20),
+      //         child: GridView.builder(
+      //           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      //             crossAxisCount: 4,
+      //           ),
+      //           itemCount: images.length,
+      //           itemBuilder: (BuildContext context, int index) {
+      //             return Padding(
+      //               padding: const EdgeInsets.all(8),
+      //               child: GestureDetector(
+      //                 onTap: () {
+      //                   Navigator.of(context).pop(images[index]);
+      //                 },
+      //                 child: Draggable<Widget>(
+      //                   data: images[index],
+      //                   feedback: images[index],
+      //                   child: images[index],
+      //                   onDragUpdate: (DragUpdateDetails details) {
+      //                     // RenderBox box = _dialogKey.currentContext
+      //                     //     ?.findRenderObject() as RenderBox;
+      //                     // Offset position = box.localToGlobal(Offset.zero);
+      //
+      //                     Offset position = Offset(
+      //                         MediaQuery.sizeOf(context).width / 2,
+      //                         MediaQuery.sizeOf(context).height / 2);
+      //
+      //                     print((position - details.globalPosition)
+      //                         .distance
+      //                         .abs());
+      //                     if ((position - details.globalPosition)
+      //                             .distance
+      //                             .abs() <
+      //                         1) {
+      //                       Navigator.of(context).pop(images[index]);
+      //                     }
+      //                   },
+      //                 ),
+      //               ),
+      //             );
+      //           },
+      //         ),
+      //       ),
+      //     ),
+      //   ).then((value) {
+      //     if (value != null) context.read<PaintBloc>().addNewImage(value);
+      //   });
+      // },
       child: BlocBuilder<PaintBloc, PaintState>(
         buildWhen: (prev, curr) => prev.action != curr.action,
         builder: (context, state) {
